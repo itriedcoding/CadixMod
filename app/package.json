@@ -32,7 +32,6 @@
   "build": {
     "appId": "com.cadixmod.desktop",
     "productName": "CadixMod",
-    "publish": null,
     "asar": true,
     "directories": {
       "output": "release"
@@ -42,10 +41,6 @@
       "assets/**/*",
       "package.json"
     ],
-    "extraResources": [],
-    "npmRebuild": false,
-    "npmSkipBuildFromSource": true,
-    "nodeGypRebuild": false,
     "win": {
       "target": [
         "nsis",
