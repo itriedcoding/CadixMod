@@ -43,7 +43,7 @@ function packageApp() {
 
   const platform_ = platform();
   const arch_ = arch();
-  const version = "1.0.0";
+  const version = "1.1.0";
 
   const platformNames = {
     win32: "windows",

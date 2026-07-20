@@ -105,7 +105,7 @@ if (existsSync(asarBackup)) {
 
   const packageContent = JSON.stringify({
     name: "cadixmod-discord",
-    version: "1.0.0",
+    version: "1.1.0",
     main: "index.js",
   }, null, 2);
 

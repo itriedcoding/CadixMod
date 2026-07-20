@@ -16,7 +16,8 @@ contextBridge.exposeInMainWorld("api", {
     launch: (inst: any) => ipcRenderer.invoke("discord:launch", inst),
     kill: () => ipcRenderer.invoke("discord:kill"),
     isInjected: (inst: any) => ipcRenderer.invoke("discord:isInjected", inst),
-    onStatus: (callback: Function) => ipcRenderer.on("discord:status", (_: any, data: any) => callback(data)),
+    onStatus: (callback: Function) =>
+      ipcRenderer.on("discord:status", (_: any, data: any) => callback(data)),
   },
 
   settings: {
@@ -31,5 +32,29 @@ contextBridge.exposeInMainWorld("api", {
 
   updater: {
     check: () => ipcRenderer.invoke("updater:check"),
+  },
+
+  plugins: {
+    get: () => ipcRenderer.invoke("plugins:get"),
+    enable: (name: string) => ipcRenderer.invoke("plugins:enable", name),
+    disable: (name: string) => ipcRenderer.invoke("plugins:disable", name),
+    getSettings: (name: string) => ipcRenderer.invoke("plugins:getSettings", name),
+    setSettings: (name: string, data: any) =>
+      ipcRenderer.invoke("plugins:setSettings", name, data),
+    readDir: (name: string) => ipcRenderer.invoke("plugins:readDir", name),
+    writeFile: (pluginName: string, filePath: string, content: string) =>
+      ipcRenderer.invoke("plugins:writeFile", pluginName, filePath, content),
+    readFile: (pluginName: string, filePath: string) =>
+      ipcRenderer.invoke("plugins:readFile", pluginName, filePath),
+  },
+
+  themes: {
+    get: () => ipcRenderer.invoke("themes:get"),
+    install: (name: string, data: any) => ipcRenderer.invoke("themes:install", name, data),
+    remove: (name: string) => ipcRenderer.invoke("themes:remove", name),
+    readDir: () => ipcRenderer.invoke("themes:readDir"),
+    writeFile: (fileName: string, content: string) =>
+      ipcRenderer.invoke("themes:writeFile", fileName, content),
+    deleteFile: (fileName: string) => ipcRenderer.invoke("themes:deleteFile", fileName),
   },
 });
