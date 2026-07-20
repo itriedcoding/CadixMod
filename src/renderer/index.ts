@@ -1,92 +1,190 @@
-// CadixMod Renderer Entry - Injects into Discord's renderer process
+import { createLogger } from "../utils/logger";
+import { CADIXMOD_VERSION, CADIXMOD_NAME } from "../shared/constants";
+import { SettingsStorage, VersionStorage } from "../utils/storage";
+import { LogLevel } from "../shared/types";
+import { injectStyles, removeStyles } from "./css";
+import { Webpack } from "./webpack";
+import { Patcher } from "./patcher";
+import { Discord } from "./discord";
+import { Themes } from "./themes";
+import { Plugins } from "./plugins";
+import { createSettingsPanel, removeSettingsButton, showToast } from "./ui";
 
-import { pluginManager } from "../api/plugin";
-import { discordAPI } from "../api/discord";
-import { patcher } from "../api/patcher";
-import { storage } from "../utils/storage";
-import { logger } from "../utils/logger";
-import { injectSettingsButton, removeSettingsButton } from "./settings";
-import { injectCSS, removeCSS } from "./css";
+const log = createLogger("Core", "#5865F2");
 
-class CadixModRenderer {
-  private static instance: CadixModRenderer;
+class CadixModCore {
   private initialized = false;
-
-  static getInstance(): CadixModRenderer {
-    if (!CadixModRenderer.instance) {
-      CadixModRenderer.instance = new CadixModRenderer();
-    }
-    return CadixModRenderer.instance;
+  private waitForDiscord(maxAttempts = 60, interval = 1000): Promise<boolean> {
+    return new Promise((resolve) => {
+      let attempts = 0;
+      const check = () => {
+        attempts++;
+        const appMount = document.querySelector("#app-mount");
+        if (appMount) {
+          log.info("Discord app mount found");
+          resolve(true);
+          return;
+        }
+        if (attempts >= maxAttempts) {
+          log.error("Timed out waiting for Discord to load");
+          resolve(false);
+          return;
+        }
+        setTimeout(check, interval);
+      };
+      check();
+    });
   }
 
-  async initialize(): Promise<void> {
-    if (this.initialized) return;
+  async init(): Promise<void> {
+    if (this.initialized) {
+      log.warn("CadixMod already initialized");
+      return;
+    }
 
-    logger.info("Initializing renderer...");
+    log.info(`${CADIXMOD_NAME} v${CADIXMOD_VERSION} initializing...`);
+
+    const loaded = await this.waitForDiscord();
+    if (!loaded) {
+      log.error("Failed to detect Discord, aborting initialization");
+      return;
+    }
 
     try {
-      await discordAPI.initialize();
-      await pluginManager.initialize();
-
-      injectSettingsButton();
-      this.injectBadge();
-
-      logger.info("CadixMod loaded successfully!");
-      this.initialized = true;
+      injectStyles();
+      log.debug("Injected CadixMod styles");
     } catch (err) {
-      logger.error("Failed to initialize CadixMod:", err);
+      log.error("Failed to inject styles:", err);
+    }
+
+    try {
+      await Webpack.init();
+      log.debug("Webpack interceptor initialized");
+    } catch (err) {
+      log.error("Failed to initialize Webpack:", err);
+    }
+
+    try {
+      Patcher.init();
+      log.debug("Patcher initialized");
+    } catch (err) {
+      log.error("Failed to initialize Patcher:", err);
+    }
+
+    try {
+      Discord.init();
+      log.debug("Discord API initialized");
+    } catch (err) {
+      log.error("Failed to initialize Discord API:", err);
+    }
+
+    try {
+      Themes.init();
+      log.debug("Theme engine initialized");
+    } catch (err) {
+      log.error("Failed to initialize Theme engine:", err);
+    }
+
+    try {
+      Plugins.init();
+      log.debug("Plugin manager initialized");
+    } catch (err) {
+      log.error("Failed to initialize Plugin manager:", err);
+    }
+
+    try {
+      createSettingsPanel();
+      log.debug("Settings panel injected");
+    } catch (err) {
+      log.error("Failed to inject settings panel:", err);
+    }
+
+    this.setupLog();
+
+    const isFirstRun = VersionStorage.isFirstRun();
+    const lastVersion = VersionStorage.getLastVersion();
+
+    VersionStorage.setLastVersion(CADIXMOD_VERSION);
+    VersionStorage.setFirstRun(false);
+
+    this.initialized = true;
+    log.info(`${CADIXMOD_NAME} v${CADIXMOD_VERSION} initialized successfully`);
+
+    try {
+      const { showToasts } = SettingsStorage.get();
+      if (showToasts) {
+        if (isFirstRun) {
+          showToast({
+            title: `Welcome to ${CADIXMOD_NAME}!`,
+            content: `Version ${CADIXMOD_VERSION} has been installed. Click the settings button to configure.`,
+            type: "success",
+            duration: 8000,
+          });
+        } else if (lastVersion && lastVersion !== CADIXMOD_VERSION) {
+          showToast({
+            title: `${CADIXMOD_NAME} Updated`,
+            content: `Updated from v${lastVersion} to v${CADIXMOD_VERSION}`,
+            type: "info",
+            duration: 5000,
+          });
+        } else {
+          showToast({
+            title: `${CADIXMOD_NAME} Loaded`,
+            content: `Version ${CADIXMOD_VERSION} is running`,
+            type: "info",
+            duration: 3000,
+          });
+        }
+      }
+    } catch (err) {
+      log.error("Failed to show welcome toast:", err);
     }
   }
 
-  private injectBadge(): void {
-    const observer = new MutationObserver(() => {
-      const titleElement = document.querySelector(".title-31JmR4");
-      if (titleElement && !document.querySelector(".cadixmod-badge")) {
-        const badge = document.createElement("span");
-        badge.className = "cadixmod-badge";
-        badge.textContent = "CadixMod";
-        badge.style.cssText = `
-          background: linear-gradient(135deg, #7289da, #5b6eae);
-          color: white;
-          padding: 2px 6px;
-          border-radius: 3px;
-          font-size: 10px;
-          font-weight: 600;
-          margin-left: 8px;
-          vertical-align: middle;
-        `;
-        titleElement.appendChild(badge);
-      }
-    });
-
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-    });
+  private setupLog(): void {
+    const level = SettingsStorage.getGeneral("logLevel");
+    log.setLevel(level);
   }
 
   destroy(): void {
-    removeSettingsButton();
-    removeCSS();
-    patcher.unpatchAll();
+    if (!this.initialized) return;
 
-    for (const plugin of pluginManager.getAll()) {
-      pluginManager.disable(plugin.name);
-    }
+    log.info(`${CADIXMOD_NAME} shutting down...`);
+
+    Plugins.cleanup();
+    Themes.cleanup();
+    Patcher.cleanup();
+    removeSettingsButton();
+    removeStyles();
+    Webpack.invalidate();
 
     this.initialized = false;
-    logger.info("CadixMod unloaded");
+    log.info(`${CADIXMOD_NAME} shut down`);
+  }
+
+  isInitialized(): boolean {
+    return this.initialized;
+  }
+
+  getVersion(): string {
+    return CADIXMOD_VERSION;
+  }
+
+  async reinit(): Promise<void> {
+    this.destroy();
+    await this.init();
   }
 }
 
-declare global {
-  interface Window {
-    CadixMod: any;
-    webpackChunkdiscord_app: any[];
-  }
+const CadixMod = new CadixModCore();
+
+export { CadixMod, CadixModCore };
+export default CadixMod;
+
+if (typeof window !== "undefined") {
+  (window as Record<string, unknown>).CadixMod = CadixMod;
 }
 
-const cadixmod = CadixModRenderer.getInstance();
-cadixmod.initialize();
-
-export default cadixmod;
+CadixMod.init().catch((err) => {
+  console.error("[CadixMod] Fatal initialization error:", err);
+});

@@ -1,99 +1,194 @@
-// CadixMod Shared Types
-
 export interface CadixSettings {
-  enabled: boolean;
+  general: {
+    enablePlugins: boolean;
+    enableThemes: boolean;
+    enableDevTools: boolean;
+    debugMode: boolean;
+    logLevel: LogLevel;
+  };
   plugins: Record<string, PluginSettings>;
-  theme: string;
-  customCSS: string;
-  developerMode: boolean;
-  experimentalFeatures: boolean;
-  notifications: boolean;
-  autoUpdate: boolean;
-  proxyEnabled: boolean;
-  proxyUrl: string;
+  themes: Record<string, ThemeSettings>;
+  ui: {
+    showBadges: boolean;
+    showToasts: boolean;
+    compactMode: boolean;
+    sidebarPosition: "left" | "right";
+  };
+  developer: {
+    reactDevTools: boolean;
+    inspectElement: boolean;
+    verboseLogging: boolean;
+  };
 }
 
 export interface PluginSettings {
   enabled: boolean;
-  settings: Record<string, unknown>;
+  order: number;
+  config: Record<string, unknown>;
 }
 
-export interface PluginManifest {
+export interface ThemeSettings {
+  enabled: boolean;
+  order: number;
+  overrides: Record<string, string>;
+}
+
+export interface Patch {
+  id: string;
+  pluginId: string;
+  module: string;
+  methodName: string;
+  type: "before" | "after" | "instead";
+  priority: number;
+  callback: PatchCallback;
+  original?: Function;
+  unpatched: boolean;
+}
+
+export type PatchCallback = {
+  before?: (thisObj: unknown, args: unknown[], context: PatchContext) => unknown[] | void;
+  after?: (thisObj: unknown, args: unknown[], result: unknown, context: PatchContext) => unknown;
+  instead?: (thisObj: unknown, args: unknown[], original: Function, context: PatchContext) => unknown;
+};
+
+export interface PatchContext {
+  patch: Patch;
+  module: DiscordModule;
+  methodName: string;
+}
+
+export interface ModulePatch {
+  moduleName: string;
+  patches: Patch[];
+  originals: Map<string, Function>;
+}
+
+export interface Plugin {
+  id: string;
   name: string;
   description: string;
   version: string;
   author: string;
-  authors?: string[];
-  dependencies?: string[];
-  settings?: PluginSettingDef[];
-  tags?: string[];
-  color?: string;
-  icon?: string;
-}
-
-export type PluginSettingDef =
-  | { type: "text"; key: string; label: string; description?: string; default: string }
-  | { type: "number"; key: string; label: string; description?: string; default: number; min?: number; max?: number }
-  | { type: "boolean"; key: string; label: string; description?: string; default: boolean }
-  | { type: "select"; key: string; label: string; description?: string; options: { label: string; value: string }[]; default: string }
-  | { type: "slider"; key: string; label: string; description?: string; default: number; min: number; max: number; step?: number }
-  | { type: "color"; key: string; label: string; description?: string; default: string };
-
-export interface Plugin extends PluginManifest {
+  patches: PluginPatch[];
+  settings?: Record<string, unknown>;
   start(): void;
   stop(): void;
-  settings?: Record<string, unknown>;
+  load?(): void;
+  unload?(): void;
+  onSettingsUpdate?(settings: Record<string, unknown>): void;
 }
 
-export interface Patch {
-  match: RegExp | string;
-  replace: string | ((match: string, ...groups: string[]) => string);
-  once?: boolean;
+export interface PluginPatch {
+  module: string;
+  methodName: string;
+  type: "before" | "after" | "instead";
   priority?: number;
+  callback: PatchCallback;
 }
 
-export interface ModulePatch {
-  module: string | RegExp;
-  patches: Patch[];
-}
-
-export interface IPCMessage {
-  channel: string;
-  data: unknown;
+export interface Theme {
   id: string;
+  name: string;
+  description: string;
+  version: string;
+  author: string;
+  css: string;
+  variables: Record<string, string>;
+  enabled: boolean;
 }
 
-export interface IPCResponse {
-  id: string;
-  success: boolean;
-  data?: unknown;
-  error?: string;
+export interface DiscordModule {
+  default?: Record<string, unknown>;
+  [key: string]: unknown;
 }
 
-export type Platform = "win32" | "linux" | "darwin";
-
-export interface DiscordWindow extends Window {
-  DiscordNative: {
-    app: {
-      getVersion(): string;
-      relaunch(): void;
-      quit(): void;
-    };
-    clipboard: {
-      copy(text: string): void;
-      cut(): void;
-      paste(): void;
-    };
-    powerSaveBlocker: {
-      start(type: number): number;
-      stop(id: number): void;
-    };
-    process: {
-      arch: string;
-      platform: string;
-    };
+export interface WebpackChunk {
+  [key: number]: {
+    i: number[];
+    m: Record<number, (module: DiscordModule, exports: unknown, require: WebpackRequire) => void>;
+    l: boolean;
   };
-  webpackChunkdiscord_app: any[];
-  Vencord: any;
-  BdApi: any;
+}
+
+export interface WebpackRequire {
+  (id: number): DiscordModule;
+  m: Record<number, (module: DiscordModule, exports: unknown, require: WebpackRequire) => void>;
+  c: Record<number, { exports: unknown }>;
+}
+
+export interface DiscordUser {
+  id: string;
+  username: string;
+  discriminator: string;
+  avatar: string | null;
+  bot?: boolean;
+  system?: boolean;
+  banner?: string | null;
+  accent_color?: number | null;
+}
+
+export interface DiscordGuild {
+  id: string;
+  name: string;
+  icon: string | null;
+  owner: boolean;
+  permissions: number;
+  member_count: number;
+  approximate_member_count?: number;
+  approximate_presence_count?: number;
+}
+
+export interface DiscordChannel {
+  id: string;
+  name: string;
+  type: number;
+  guild_id: string;
+  position: number;
+  topic?: string;
+  nsfw?: boolean;
+  last_message_id?: string;
+}
+
+export interface DiscordRelationship {
+  type: number;
+  id: string;
+  user: DiscordUser;
+}
+
+export enum LogLevel {
+  DEBUG = 0,
+  INFO = 1,
+  WARN = 2,
+  ERROR = 3,
+  SILENT = 4,
+}
+
+export interface ToastOptions {
+  title: string;
+  content?: string;
+  type?: "info" | "success" | "warning" | "error";
+  duration?: number;
+  onClick?: () => void;
+}
+
+export interface ModalOptions {
+  title: string;
+  content: string;
+  buttons?: ModalButton[];
+  onClose?: () => void;
+}
+
+export interface ModalButton {
+  label: string;
+  style?: "primary" | "secondary" | "danger";
+  onClick: () => void;
+}
+
+export interface NavItem {
+  id: string;
+  label: string;
+  icon: string;
+  onClick: () => void;
+  badge?: number;
+  active?: boolean;
 }

@@ -1,13 +1,31 @@
 import { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage } from "electron";
 import { join } from "path";
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from "fs";
+import {
+  existsSync,
+  readFileSync,
+  writeFileSync,
+  mkdirSync,
+  readdirSync,
+  rmSync,
+  unlinkSync,
+  statSync,
+} from "fs";
 import { homedir } from "os";
-import { detectDiscord, isDiscordRunning, killDiscord, launchDiscord, type DiscordInstallation } from "./discord";
+import {
+  detectDiscord,
+  isDiscordRunning,
+  killDiscord,
+  launchDiscord,
+  type DiscordInstallation,
+} from "./discord";
 import { inject, uninject, isInjected } from "./injector";
 import { logger } from "./logger";
 
 const CADIXMOD_DIR = join(homedir(), ".cadixmod");
 const SETTINGS_FILE = join(CADIXMOD_DIR, "settings.json");
+const PLUGINS_DIR = join(CADIXMOD_DIR, "plugins");
+const THEMES_DIR = join(CADIXMOD_DIR, "themes");
+const PLUGIN_SETTINGS_DIR = join(CADIXMOD_DIR, "plugin-settings");
 
 interface AppSettings {
   autoInject: boolean;
@@ -16,6 +34,24 @@ interface AppSettings {
   closeToTray: boolean;
   autoStartDiscord: boolean;
   selectedChannel: string;
+}
+
+interface PluginMeta {
+  name: string;
+  description: string;
+  version: string;
+  author: string;
+  enabled: boolean;
+  main: string;
+}
+
+interface ThemeMeta {
+  name: string;
+  author: string;
+  description: string;
+  enabled: boolean;
+  colors: Record<string, string>;
+  css: string;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -50,6 +86,76 @@ function saveSettings(s: AppSettings): void {
   try {
     mkdirSync(CADIXMOD_DIR, { recursive: true });
     writeFileSync(SETTINGS_FILE, JSON.stringify(s, null, 2));
+  } catch {}
+}
+
+function ensureDirs(): void {
+  mkdirSync(PLUGINS_DIR, { recursive: true });
+  mkdirSync(THEMES_DIR, { recursive: true });
+  mkdirSync(PLUGIN_SETTINGS_DIR, { recursive: true });
+}
+
+function parsePluginDir(dirPath: string): PluginMeta | null {
+  try {
+    const manifestPath = join(dirPath, "manifest.json");
+    if (!existsSync(manifestPath)) {
+      const jsFiles = readdirSync(dirPath).filter((f) => f.endsWith(".js"));
+      if (jsFiles.length === 0) return null;
+      const name = require("path").basename(dirPath);
+      return {
+        name,
+        description: "No manifest found",
+        version: "1.0.0",
+        author: "Unknown",
+        enabled: false,
+        main: jsFiles[0],
+      };
+    }
+    const raw = JSON.parse(readFileSync(manifestPath, "utf-8"));
+    return {
+      name: raw.name || require("path").basename(dirPath),
+      description: raw.description || "",
+      version: raw.version || "1.0.0",
+      author: raw.author || "Unknown",
+      enabled: raw.enabled !== undefined ? raw.enabled : false,
+      main: raw.main || "index.js",
+    };
+  } catch {
+    return null;
+  }
+}
+
+function parseThemeFile(filePath: string): ThemeMeta | null {
+  try {
+    const raw = JSON.parse(readFileSync(filePath, "utf-8"));
+    return {
+      name: raw.name || require("path").basename(filePath, ".json"),
+      author: raw.author || "Unknown",
+      description: raw.description || "",
+      enabled: raw.enabled !== undefined ? raw.enabled : false,
+      colors: raw.colors || {},
+      css: raw.css || "",
+    };
+  } catch {
+    return null;
+  }
+}
+
+function readPluginSettings(pluginName: string): Record<string, any> {
+  try {
+    const settingsPath = join(PLUGIN_SETTINGS_DIR, `${pluginName}.json`);
+    if (existsSync(settingsPath)) {
+      return JSON.parse(readFileSync(settingsPath, "utf-8"));
+    }
+  } catch {}
+  return {};
+}
+
+function writePluginSettings(pluginName: string, data: Record<string, any>): void {
+  try {
+    mkdirSync(PLUGIN_SETTINGS_DIR, { recursive: true });
+    const settingsPath = join(PLUGIN_SETTINGS_DIR, `${pluginName}.json`);
+    writeFileSync(settingsPath, JSON.stringify(data, null, 2));
   } catch {}
 }
 
@@ -105,7 +211,7 @@ function createWindow(): void {
     minHeight: 500,
     frame: false,
     titleBarStyle: "hidden",
-    backgroundColor: "#0d0d0d",
+    backgroundColor: "#0a0a0a",
     icon: join(getAppPath(), "assets", "icon.png"),
     webPreferences: {
       preload: join(__dirname, "preload.js"),
@@ -215,10 +321,157 @@ function setupIPC(): void {
   ipcMain.handle("updater:check", async () => {
     return { updateAvailable: false, version: "1.0.0" };
   });
+
+  ipcMain.handle("plugins:get", () => {
+    ensureDirs();
+    const entries = readdirSync(PLUGINS_DIR, { withFileTypes: true });
+    const plugins: PluginMeta[] = [];
+    for (const entry of entries) {
+      if (entry.isDirectory()) {
+        const meta = parsePluginDir(join(PLUGINS_DIR, entry.name));
+        if (meta) plugins.push(meta);
+      }
+    }
+    return plugins;
+  });
+
+  ipcMain.handle("plugins:enable", (_, name: string) => {
+    ensureDirs();
+    const pluginDir = join(PLUGINS_DIR, name);
+    const manifestPath = join(pluginDir, "manifest.json");
+    if (existsSync(manifestPath)) {
+      const raw = JSON.parse(readFileSync(manifestPath, "utf-8"));
+      raw.enabled = true;
+      writeFileSync(manifestPath, JSON.stringify(raw, null, 2));
+    }
+    logger.info(`Plugin enabled: ${name}`);
+    return { success: true };
+  });
+
+  ipcMain.handle("plugins:disable", (_, name: string) => {
+    ensureDirs();
+    const pluginDir = join(PLUGINS_DIR, name);
+    const manifestPath = join(pluginDir, "manifest.json");
+    if (existsSync(manifestPath)) {
+      const raw = JSON.parse(readFileSync(manifestPath, "utf-8"));
+      raw.enabled = false;
+      writeFileSync(manifestPath, JSON.stringify(raw, null, 2));
+    }
+    logger.info(`Plugin disabled: ${name}`);
+    return { success: true };
+  });
+
+  ipcMain.handle("plugins:getSettings", (_, name: string) => {
+    return readPluginSettings(name);
+  });
+
+  ipcMain.handle("plugins:setSettings", (_, name: string, data: Record<string, any>) => {
+    writePluginSettings(name, data);
+    return { success: true };
+  });
+
+  ipcMain.handle("plugins:readDir", (_, name: string) => {
+    ensureDirs();
+    const dirPath = join(PLUGINS_DIR, name);
+    if (!existsSync(dirPath)) return { success: false, files: [] };
+    const files: string[] = [];
+    function walk(dir: string, prefix: string) {
+      for (const entry of readdirSync(dir)) {
+        const full = join(dir, entry);
+        const rel = prefix ? `${prefix}/${entry}` : entry;
+        if (statSync(full).isDirectory()) {
+          walk(full, rel);
+        } else {
+          files.push(rel);
+        }
+      }
+    }
+    walk(dirPath, "");
+    return { success: true, files };
+  });
+
+  ipcMain.handle("plugins:writeFile", (_, pluginName: string, filePath: string, content: string) => {
+    ensureDirs();
+    const fullPath = join(PLUGINS_DIR, pluginName, filePath);
+    const dir = require("path").dirname(fullPath);
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(fullPath, content, "utf-8");
+    return { success: true };
+  });
+
+  ipcMain.handle("plugins:readFile", (_, pluginName: string, filePath: string) => {
+    const fullPath = join(PLUGINS_DIR, pluginName, filePath);
+    if (!existsSync(fullPath)) return { success: false, content: "" };
+    const content = readFileSync(fullPath, "utf-8");
+    return { success: true, content };
+  });
+
+  ipcMain.handle("themes:get", () => {
+    ensureDirs();
+    const files = readdirSync(THEMES_DIR).filter((f) => f.endsWith(".json"));
+    const themes: ThemeMeta[] = [];
+    for (const file of files) {
+      const meta = parseThemeFile(join(THEMES_DIR, file));
+      if (meta) themes.push(meta);
+    }
+    return themes;
+  });
+
+  ipcMain.handle("themes:install", (_, name: string, themeData: Partial<ThemeMeta>) => {
+    ensureDirs();
+    const themePath = join(THEMES_DIR, `${name}.json`);
+    const existing = existsSync(themePath)
+      ? JSON.parse(readFileSync(themePath, "utf-8"))
+      : {};
+    const merged = {
+      name: name,
+      author: themeData.author || existing.author || "Unknown",
+      description: themeData.description || existing.description || "",
+      enabled: themeData.enabled !== undefined ? themeData.enabled : existing.enabled || false,
+      colors: themeData.colors || existing.colors || {},
+      css: themeData.css !== undefined ? themeData.css : existing.css || "",
+    };
+    writeFileSync(themePath, JSON.stringify(merged, null, 2));
+    logger.info(`Theme installed: ${name}`);
+    return { success: true };
+  });
+
+  ipcMain.handle("themes:remove", (_, name: string) => {
+    ensureDirs();
+    const themePath = join(THEMES_DIR, `${name}.json`);
+    if (existsSync(themePath)) {
+      unlinkSync(themePath);
+      logger.info(`Theme removed: ${name}`);
+    }
+    return { success: true };
+  });
+
+  ipcMain.handle("themes:readDir", () => {
+    ensureDirs();
+    const files = readdirSync(THEMES_DIR).filter((f) => f.endsWith(".json"));
+    return { success: true, files };
+  });
+
+  ipcMain.handle("themes:writeFile", (_, fileName: string, content: string) => {
+    ensureDirs();
+    const filePath = join(THEMES_DIR, fileName);
+    writeFileSync(filePath, content, "utf-8");
+    return { success: true };
+  });
+
+  ipcMain.handle("themes:deleteFile", (_, fileName: string) => {
+    ensureDirs();
+    const filePath = join(THEMES_DIR, fileName);
+    if (existsSync(filePath)) {
+      unlinkSync(filePath);
+    }
+    return { success: true };
+  });
 }
 
 app.whenReady().then(async () => {
   settings = loadSettings();
+  ensureDirs();
   logger.info("CadixMod Desktop v1.0.0 starting...");
 
   createWindow();

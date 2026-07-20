@@ -3,18 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:;">
   <title>CadixMod</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-      background: #0d0d0d;
+      background: #0a0a0a;
       color: #e0e0e0;
       overflow: hidden;
       height: 100vh;
@@ -26,7 +22,7 @@
       align-items: center;
       justify-content: space-between;
       height: 36px;
-      background: #080808;
+      background: #050505;
       border-bottom: 1px solid #1a1a1a;
       -webkit-app-region: drag;
       padding: 0 8px 0 16px;
@@ -43,172 +39,85 @@
     }
 
     .titlebar-brand .logo {
-      width: 18px;
-      height: 18px;
+      width: 18px; height: 18px;
       background: linear-gradient(135deg, #7289da, #5865f2);
       border-radius: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 10px;
-      color: white;
-      font-weight: 900;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; color: white; font-weight: 900;
     }
 
     .titlebar-controls {
-      display: flex;
-      gap: 2px;
+      display: flex; gap: 2px;
       -webkit-app-region: no-drag;
     }
 
     .titlebar-btn {
-      width: 36px;
-      height: 28px;
-      border: none;
-      background: transparent;
-      color: #888;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 4px;
-      transition: all 0.15s;
+      width: 36px; height: 28px; border: none;
+      background: transparent; color: #888; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 4px; transition: all 0.15s;
     }
 
-    .titlebar-btn:hover {
-      background: #1a1a1a;
-      color: #fff;
-    }
+    .titlebar-btn:hover { background: #1a1a1a; color: #fff; }
+    .titlebar-btn.close:hover { background: #e04040; color: white; }
 
-    .titlebar-btn.close:hover {
-      background: #e04040;
-      color: white;
-    }
-
-    .app {
-      display: flex;
-      height: calc(100vh - 36px);
-    }
+    .app { display: flex; height: calc(100vh - 36px); }
 
     .sidebar {
       width: 220px;
-      background: #080808;
+      background: #050505;
       border-right: 1px solid #1a1a1a;
-      display: flex;
-      flex-direction: column;
+      display: flex; flex-direction: column;
       padding: 16px 0;
     }
 
-    .sidebar-section {
-      padding: 0 12px;
-      margin-bottom: 20px;
-    }
+    .sidebar-section { padding: 0 12px; margin-bottom: 20px; }
 
     .sidebar-section-title {
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      color: #555;
-      letter-spacing: 1px;
-      padding: 0 8px;
-      margin-bottom: 8px;
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      color: #555; letter-spacing: 1px;
+      padding: 0 8px; margin-bottom: 8px;
     }
 
     .sidebar-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.15s;
-      font-size: 13px;
-      color: #888;
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 12px; border-radius: 6px;
+      cursor: pointer; transition: all 0.15s;
+      font-size: 13px; color: #888;
     }
 
-    .sidebar-item:hover {
-      background: #111;
-      color: #ccc;
-    }
+    .sidebar-item:hover { background: #111; color: #ccc; }
+    .sidebar-item.active { background: #1a1a2e; color: #7289da; }
+    .sidebar-item svg { width: 16px; height: 16px; flex-shrink: 0; }
 
-    .sidebar-item.active {
-      background: #1a1a2e;
-      color: #7289da;
-    }
-
-    .sidebar-item svg {
-      width: 16px;
-      height: 16px;
-      flex-shrink: 0;
-    }
-
-    .main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
     .main-header {
       padding: 20px 28px 16px;
       border-bottom: 1px solid #1a1a1a;
     }
 
-    .main-header h1 {
-      font-size: 22px;
-      font-weight: 700;
-      color: #fff;
-      margin-bottom: 4px;
-    }
-
-    .main-header p {
-      font-size: 13px;
-      color: #666;
-    }
+    .main-header h1 { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+    .main-header p { font-size: 13px; color: #666; }
 
     .main-content {
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px 28px;
+      flex: 1; overflow-y: auto; padding: 20px 28px;
     }
 
-    .main-content::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    .main-content::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    .main-content::-webkit-scrollbar-thumb {
-      background: #222;
-      border-radius: 3px;
-    }
+    .main-content::-webkit-scrollbar { width: 6px; }
+    .main-content::-webkit-scrollbar-track { background: transparent; }
+    .main-content::-webkit-scrollbar-thumb { background: #222; border-radius: 3px; }
 
     .status-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      display: flex; align-items: center; justify-content: space-between;
       padding: 8px 12px;
-      background: #080808;
+      background: #050505;
       border-top: 1px solid #1a1a1a;
-      font-size: 11px;
-      color: #555;
+      font-size: 11px; color: #555;
     }
 
-    .status-indicator {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .status-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: #444;
-    }
-
+    .status-indicator { display: flex; align-items: center; gap: 6px; }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #444; }
     .status-dot.online { background: #43b581; }
     .status-dot.offline { background: #ed4245; }
     .status-dot.warning { background: #faa61a; }
@@ -217,311 +126,191 @@
     .page.active { display: block; }
 
     .card {
-      background: #111;
-      border: 1px solid #1a1a1a;
+      background: #1a1a1a;
+      border: 1px solid #222;
       border-radius: 10px;
       padding: 20px;
       margin-bottom: 16px;
     }
 
     .card-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: #fff;
+      font-size: 14px; font-weight: 600; color: #fff;
       margin-bottom: 12px;
     }
 
     .discord-card {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      display: flex; align-items: center; justify-content: space-between;
       padding: 16px 20px;
     }
 
-    .discord-info {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
+    .discord-info { display: flex; align-items: center; gap: 14px; }
 
     .discord-icon {
-      width: 40px;
-      height: 40px;
+      width: 40px; height: 40px;
       background: #5865f2;
       border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       font-size: 18px;
     }
 
-    .discord-name {
-      font-weight: 600;
-      color: #fff;
-    }
-
-    .discord-path {
-      font-size: 11px;
-      color: #555;
-      margin-top: 2px;
-    }
-
-    .discord-status {
-      font-size: 11px;
-      color: #555;
-      margin-top: 2px;
-    }
-
-    .discord-actions {
-      display: flex;
-      gap: 8px;
-    }
+    .discord-name { font-weight: 600; color: #fff; }
+    .discord-path { font-size: 11px; color: #555; margin-top: 2px; }
+    .discord-status { font-size: 11px; color: #555; margin-top: 2px; }
+    .discord-actions { display: flex; gap: 8px; }
 
     .btn {
-      padding: 8px 16px;
-      border: none;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.15s;
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      padding: 8px 16px; border: none; border-radius: 6px;
+      font-size: 12px; font-weight: 600; cursor: pointer;
+      transition: all 0.15s; display: flex; align-items: center; gap: 6px;
     }
 
-    .btn-primary {
-      background: #5865f2;
-      color: white;
-    }
-
+    .btn-primary { background: #5865f2; color: white; }
     .btn-primary:hover { background: #4752c4; }
-
-    .btn-success {
-      background: #43b581;
-      color: white;
-    }
-
+    .btn-success { background: #43b581; color: white; }
     .btn-success:hover { background: #3ca374; }
-
-    .btn-danger {
-      background: #ed4245;
-      color: white;
-    }
-
+    .btn-danger { background: #ed4245; color: white; }
     .btn-danger:hover { background: #c93b3e; }
-
-    .btn-secondary {
-      background: #1a1a1a;
-      color: #888;
-      border: 1px solid #222;
-    }
-
-    .btn-secondary:hover {
-      background: #222;
-      color: #ccc;
-    }
-
-    .btn:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
+    .btn-secondary { background: #222; color: #888; border: 1px solid #333; }
+    .btn-secondary:hover { background: #2a2a2a; color: #ccc; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
     .badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 10px;
-      font-weight: 700;
+      display: inline-block; padding: 2px 8px;
+      border-radius: 4px; font-size: 10px; font-weight: 700;
       text-transform: uppercase;
     }
 
-    .badge-green { background: rgba(67, 181, 129, 0.15); color: #43b581; }
-    .badge-red { background: rgba(237, 66, 69, 0.15); color: #ed4245; }
-    .badge-yellow { background: rgba(250, 166, 26, 0.15); color: #faa61a; }
-    .badge-blue { background: rgba(88, 101, 242, 0.15); color: #5865f2; }
+    .badge-green { background: rgba(67,181,129,0.15); color: #43b581; }
+    .badge-red { background: rgba(237,66,69,0.15); color: #ed4245; }
+    .badge-yellow { background: rgba(250,166,26,0.15); color: #faa61a; }
+    .badge-blue { background: rgba(88,101,242,0.15); color: #5865f2; }
+    .badge-purple { background: rgba(114,137,218,0.15); color: #7289da; }
 
     .setting-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 0;
-      border-bottom: 1px solid #1a1a1a;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 0; border-bottom: 1px solid #222;
     }
 
-    .setting-row:last-child {
-      border-bottom: none;
-    }
-
-    .setting-label {
-      font-size: 13px;
-      color: #ccc;
-    }
-
-    .setting-desc {
-      font-size: 11px;
-      color: #555;
-      margin-top: 2px;
-    }
+    .setting-row:last-child { border-bottom: none; }
+    .setting-label { font-size: 13px; color: #ccc; }
+    .setting-desc { font-size: 11px; color: #555; margin-top: 2px; }
 
     .toggle {
-      position: relative;
-      width: 40px;
-      height: 20px;
-      cursor: pointer;
+      position: relative; width: 40px; height: 20px; cursor: pointer;
     }
 
-    .toggle input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
+    .toggle input { opacity: 0; width: 0; height: 0; }
 
     .toggle-slider {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: #222;
-      border-radius: 10px;
-      transition: all 0.2s;
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      background: #333; border-radius: 10px; transition: all 0.2s;
     }
 
     .toggle-slider::before {
-      content: '';
-      position: absolute;
-      top: 2px;
-      left: 2px;
-      width: 16px;
-      height: 16px;
-      background: #555;
-      border-radius: 50%;
-      transition: all 0.2s;
+      content: ''; position: absolute;
+      top: 2px; left: 2px; width: 16px; height: 16px;
+      background: #666; border-radius: 50%; transition: all 0.2s;
     }
 
-    .toggle input:checked + .toggle-slider {
-      background: #5865f2;
-    }
+    .toggle input:checked + .toggle-slider { background: #5865f2; }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(20px); background: white; }
 
-    .toggle input:checked + .toggle-slider::before {
-      transform: translateX(20px);
-      background: white;
-    }
-
-    .hero {
-      text-align: center;
-      padding: 40px 20px;
-    }
+    .hero { text-align: center; padding: 40px 20px; }
 
     .hero-icon {
-      width: 72px;
-      height: 72px;
+      width: 72px; height: 72px;
       background: linear-gradient(135deg, #7289da, #5865f2);
       border-radius: 18px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 32px;
-      color: white;
-      font-weight: 900;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 32px; color: white; font-weight: 900;
       margin-bottom: 20px;
-      box-shadow: 0 8px 32px rgba(88, 101, 242, 0.3);
+      box-shadow: 0 8px 32px rgba(88,101,242,0.3);
     }
 
-    .hero h2 {
-      font-size: 20px;
-      font-weight: 700;
-      color: #fff;
-      margin-bottom: 8px;
-    }
+    .hero h2 { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+    .hero p { font-size: 13px; color: #666; max-width: 400px; margin: 0 auto 24px; }
 
-    .hero p {
-      font-size: 13px;
-      color: #666;
-      max-width: 400px;
-      margin: 0 auto 24px;
-    }
+    .hero-actions { display: flex; gap: 12px; justify-content: center; }
 
-    .hero-actions {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-    }
-
-    .btn-lg {
-      padding: 12px 24px;
-      font-size: 14px;
-      border-radius: 8px;
-    }
+    .btn-lg { padding: 12px 24px; font-size: 14px; border-radius: 8px; }
 
     .feature-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin-top: 24px;
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 12px; margin-top: 24px;
     }
 
     .feature-card {
-      background: #111;
-      border: 1px solid #1a1a1a;
-      border-radius: 10px;
-      padding: 16px;
-      text-align: center;
+      background: #1a1a1a; border: 1px solid #222;
+      border-radius: 10px; padding: 16px; text-align: center;
     }
 
-    .feature-card .icon {
-      font-size: 24px;
-      margin-bottom: 8px;
+    .feature-card .icon { font-size: 24px; margin-bottom: 8px; }
+    .feature-card h4 { font-size: 12px; font-weight: 600; color: #ccc; margin-bottom: 4px; }
+    .feature-card p { font-size: 11px; color: #555; }
+
+    .search-bar {
+      display: flex; gap: 10px; margin-bottom: 20px; align-items: center;
     }
 
-    .feature-card h4 {
-      font-size: 12px;
-      font-weight: 600;
-      color: #ccc;
-      margin-bottom: 4px;
+    .search-input {
+      flex: 1; padding: 10px 14px; border-radius: 8px;
+      border: 1px solid #333; background: #111; color: #e0e0e0;
+      font-size: 13px; outline: none; transition: border-color 0.15s;
     }
 
-    .feature-card p {
-      font-size: 11px;
-      color: #555;
+    .search-input:focus { border-color: #5865f2; }
+    .search-input::placeholder { color: #555; }
+
+    .plugin-grid, .theme-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 12px;
     }
 
-    .loading {
-      display: inline-block;
-      width: 14px;
-      height: 14px;
-      border: 2px solid transparent;
-      border-top-color: currentColor;
-      border-radius: 50%;
-      animation: spin 0.6s linear infinite;
+    .plugin-card, .theme-card {
+      background: #1a1a1a; border: 1px solid #222;
+      border-radius: 10px; padding: 18px;
+      transition: border-color 0.15s; position: relative;
     }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+    .plugin-card:hover, .theme-card:hover { border-color: #333; }
+
+    .plugin-card-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      margin-bottom: 10px;
     }
 
-    .empty-state {
-      text-align: center;
-      padding: 40px 20px;
-      color: #555;
+    .plugin-name { font-size: 14px; font-weight: 600; color: #fff; }
+    .plugin-version { font-size: 11px; color: #555; margin-top: 2px; }
+    .plugin-desc { font-size: 12px; color: #888; line-height: 1.5; margin-bottom: 10px; }
+    .plugin-author { font-size: 11px; color: #555; }
+
+    .theme-card-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      margin-bottom: 10px;
     }
 
-    .empty-state .icon {
-      font-size: 40px;
-      margin-bottom: 12px;
+    .theme-name { font-size: 14px; font-weight: 600; color: #fff; }
+    .theme-author { font-size: 11px; color: #555; margin-top: 2px; }
+    .theme-desc { font-size: 12px; color: #888; line-height: 1.5; margin-bottom: 10px; }
+
+    .theme-preview {
+      display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;
     }
+
+    .theme-swatch {
+      width: 28px; height: 28px; border-radius: 6px;
+      border: 1px solid #333;
+    }
+
+    .empty-state { text-align: center; padding: 40px 20px; color: #555; }
+    .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
 
     .logs {
       font-family: 'Cascadia Code', 'Fira Code', monospace;
-      font-size: 11px;
-      background: #080808;
-      border: 1px solid #1a1a1a;
-      border-radius: 8px;
-      padding: 12px;
-      max-height: 300px;
-      overflow-y: auto;
-      line-height: 1.6;
+      font-size: 11px; background: #080808;
+      border: 1px solid #1a1a1a; border-radius: 8px;
+      padding: 12px; max-height: 300px;
+      overflow-y: auto; line-height: 1.6;
     }
 
     .log-line { color: #555; }
@@ -529,9 +318,60 @@
     .log-warn { color: #faa61a; }
     .log-error { color: #ed4245; }
 
-    .version-text {
-      font-size: 10px;
-      color: #333;
+    .version-text { font-size: 10px; color: #333; }
+
+    .loading {
+      display: inline-block; width: 14px; height: 14px;
+      border: 2px solid transparent; border-top-color: currentColor;
+      border-radius: 50%; animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .page.active { animation: fadeIn 0.2s ease; }
+
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7); z-index: 1000;
+      align-items: center; justify-content: center;
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal {
+      background: #1a1a1a; border: 1px solid #333;
+      border-radius: 12px; padding: 24px;
+      width: 420px; max-width: 90vw;
+    }
+
+    .modal h3 { font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 16px; }
+
+    .modal-input {
+      width: 100%; padding: 10px 14px; border-radius: 8px;
+      border: 1px solid #333; background: #111; color: #e0e0e0;
+      font-size: 13px; outline: none; margin-bottom: 12px;
+    }
+
+    .modal-input:focus { border-color: #5865f2; }
+
+    .modal-textarea {
+      width: 100%; padding: 10px 14px; border-radius: 8px;
+      border: 1px solid #333; background: #111; color: #e0e0e0;
+      font-size: 13px; outline: none; margin-bottom: 12px;
+      font-family: 'Cascadia Code', monospace; resize: vertical;
+      min-height: 120px;
+    }
+
+    .modal-textarea:focus { border-color: #5865f2; }
+
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+    .installed-badge {
+      display: inline-block; padding: 2px 6px;
+      border-radius: 4px; font-size: 9px; font-weight: 700;
+      background: rgba(67,181,129,0.15); color: #43b581;
+      margin-left: 8px; vertical-align: middle;
     }
   </style>
 </head>
@@ -566,9 +406,17 @@
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
           Discord
         </div>
+        <div class="sidebar-item" data-page="plugins">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          Plugins
+        </div>
+        <div class="sidebar-item" data-page="themes">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 000 20 4 4 0 01-4-4 4 4 0 014-4h4a4 4 0 000-8h-4z"/></svg>
+          Themes
+        </div>
       </div>
       <div class="sidebar-section">
-        <div class="sidebar-section-title">Settings</div>
+        <div class="sidebar-section-title">System</div>
         <div class="sidebar-item" data-page="settings">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
           Settings
@@ -591,6 +439,7 @@
       </div>
 
       <div class="main-content" id="main-content">
+
         <div class="page active" id="page-home">
           <div class="hero">
             <div class="hero-icon">C</div>
@@ -664,6 +513,46 @@
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23,4 23,10 17,10"/><polyline points="1,20 1,14 7,14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
               Refresh
             </button>
+          </div>
+        </div>
+
+        <div class="page" id="page-plugins">
+          <div class="search-bar">
+            <input type="text" class="search-input" id="plugin-search" placeholder="Search plugins..." oninput="filterPlugins(this.value)">
+            <button class="btn btn-primary" onclick="openInstallPluginModal()">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Install
+            </button>
+            <button class="btn btn-secondary" onclick="loadPlugins()">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23,4 23,10 17,10"/><polyline points="1,20 1,14 7,14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+              Refresh
+            </button>
+          </div>
+          <div class="plugin-grid" id="plugin-grid">
+            <div class="empty-state" style="grid-column:1/-1">
+              <div class="icon">🧩</div>
+              <p>Loading plugins...</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="page" id="page-themes">
+          <div class="search-bar">
+            <input type="text" class="search-input" id="theme-search" placeholder="Search themes..." oninput="filterThemes(this.value)">
+            <button class="btn btn-primary" onclick="openInstallThemeModal()">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Install
+            </button>
+            <button class="btn btn-secondary" onclick="loadThemes()">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23,4 23,10 17,10"/><polyline points="1,20 1,14 7,14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+              Refresh
+            </button>
+          </div>
+          <div class="theme-grid" id="theme-grid">
+            <div class="empty-state" style="grid-column:1/-1">
+              <div class="icon">🎨</div>
+              <p>Loading themes...</p>
+            </div>
           </div>
         </div>
 
@@ -747,6 +636,43 @@
         <div>
           <span id="installations-count">0 installations found</span>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-install-plugin">
+    <div class="modal">
+      <h3>Install Plugin</h3>
+      <input type="text" class="modal-input" id="modal-plugin-name" placeholder="Plugin name (e.g. my-plugin)">
+      <textarea class="modal-textarea" id="modal-plugin-code" placeholder="Paste plugin code here..."></textarea>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('modal-install-plugin')">Cancel</button>
+        <button class="btn btn-primary" onclick="installPluginFromCode()">Install</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-install-theme">
+    <div class="modal">
+      <h3>Install Theme</h3>
+      <input type="text" class="modal-input" id="modal-theme-name" placeholder="Theme name (e.g. my-theme)">
+      <input type="text" class="modal-input" id="modal-theme-author" placeholder="Author name (optional)">
+      <textarea class="modal-textarea" id="modal-theme-css" placeholder="Paste CSS here..."></textarea>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('modal-install-theme')">Cancel</button>
+        <button class="btn btn-primary" onclick="installThemeFromCode()">Install</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-edit-theme">
+    <div class="modal">
+      <h3>Edit Theme: <span id="edit-theme-title"></span></h3>
+      <textarea class="modal-textarea" id="modal-edit-css" placeholder="Edit CSS..." style="min-height:200px"></textarea>
+      <div class="modal-actions">
+        <button class="btn btn-danger" id="modal-delete-theme-btn" onclick="deleteCurrentTheme()">Delete</button>
+        <button class="btn btn-secondary" onclick="closeModal('modal-edit-theme')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveEditedTheme()">Save</button>
       </div>
     </div>
   </div>
