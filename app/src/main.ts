@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, dialog } from "electron";
+import { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage } from "electron";
 import { join } from "path";
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "fs";
 import { homedir } from "os";
@@ -8,7 +8,6 @@ import { logger } from "./logger";
 
 const CADIXMOD_DIR = join(homedir(), ".cadixmod");
 const SETTINGS_FILE = join(CADIXMOD_DIR, "settings.json");
-const AUTOSTART_KEY = "cadixmod-autostart";
 
 interface AppSettings {
   autoInject: boolean;
@@ -33,6 +32,10 @@ let tray: Tray | null = null;
 let settings: AppSettings = DEFAULT_SETTINGS;
 let discordWatcher: NodeJS.Timeout | null = null;
 
+function getAppPath(): string {
+  return app.isPackaged ? process.resourcesPath : join(__dirname, "..");
+}
+
 function loadSettings(): AppSettings {
   try {
     mkdirSync(CADIXMOD_DIR, { recursive: true });
@@ -51,26 +54,26 @@ function saveSettings(s: AppSettings): void {
 }
 
 function createTray(): void {
-  const iconSize = 16;
-  const icon = nativeImage.createEmpty();
+  try {
+    const iconPath = join(getAppPath(), "assets", "icon.png");
+    let trayIcon: Electron.NativeImage;
+    if (existsSync(iconPath)) {
+      trayIcon = nativeImage.createFromPath(iconPath).resize({ width: 16, height: 16 });
+    } else {
+      trayIcon = nativeImage.createEmpty();
+    }
+    tray = new Tray(trayIcon);
+  } catch {
+    tray = new Tray(nativeImage.createEmpty());
+  }
 
-  tray = new Tray(icon);
   tray.setToolTip("CadixMod");
 
   const contextMenu = Menu.buildFromTemplate([
-    {
-      label: "Show CadixMod",
-      click: () => mainWindow?.show(),
-    },
+    { label: "Show CadixMod", click: () => mainWindow?.show() },
     { type: "separator" },
-    {
-      label: "Inject into Discord",
-      click: () => autoInjectAll(),
-    },
-    {
-      label: "Remove from Discord",
-      click: () => uninjectAll(),
-    },
+    { label: "Inject into Discord", click: () => autoInjectAll() },
+    { label: "Remove from Discord", click: () => uninjectAll() },
     { type: "separator" },
     {
       label: "Launch Discord",
@@ -79,10 +82,7 @@ function createTray(): void {
         if (installs.length > 0) launchDiscord(installs[0]);
       },
     },
-    {
-      label: "Kill Discord",
-      click: () => killDiscord(),
-    },
+    { label: "Kill Discord", click: () => killDiscord() },
     { type: "separator" },
     {
       label: "Exit",
@@ -106,7 +106,7 @@ function createWindow(): void {
     frame: false,
     titleBarStyle: "hidden",
     backgroundColor: "#0d0d0d",
-    icon: join(__dirname, "..", "assets", "icon.png"),
+    icon: join(getAppPath(), "assets", "icon.png"),
     webPreferences: {
       preload: join(__dirname, "preload.js"),
       contextIsolation: true,
@@ -116,7 +116,7 @@ function createWindow(): void {
     show: false,
   });
 
-  mainWindow.loadFile(join(__dirname, "..", "index.html"));
+  mainWindow.loadFile(join(__dirname, "index.html"));
 
   mainWindow.once("ready-to-show", () => {
     mainWindow?.show();
@@ -156,11 +156,13 @@ function startDiscordWatcher(): void {
   if (discordWatcher) clearInterval(discordWatcher);
 
   discordWatcher = setInterval(() => {
-    const installs = detectDiscord();
-    mainWindow?.webContents.send("discord:status", {
-      running: isDiscordRunning(),
-      installations: installs,
-    });
+    try {
+      const installs = detectDiscord();
+      mainWindow?.webContents.send("discord:status", {
+        running: isDiscordRunning(),
+        installations: installs,
+      });
+    } catch {}
   }, 3000);
 }
 
@@ -217,7 +219,7 @@ function setupIPC(): void {
 
 app.whenReady().then(async () => {
   settings = loadSettings();
-  logger.info(`CadixMod Desktop v1.0.0 starting...`);
+  logger.info("CadixMod Desktop v1.0.0 starting...");
 
   createWindow();
   createTray();
