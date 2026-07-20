@@ -1,0 +1,136 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install root dependencies
+        run: npm install
+
+      - name: Install app dependencies
+        run: npm install
+        working-directory: app
+
+      - name: Build mod
+        run: npm run build
+
+      - name: Build desktop app
+        run: npm run build
+        working-directory: app
+
+      - name: Build Windows installers
+        run: npx electron-builder --win
+        working-directory: app
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: CadixMod-Windows
+          path: app/release/*.exe
+          if-no-files-found: warn
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install root dependencies
+        run: npm install
+
+      - name: Install app dependencies
+        run: npm install
+        working-directory: app
+
+      - name: Build mod
+        run: npm run build
+
+      - name: Build desktop app
+        run: npm run build
+        working-directory: app
+
+      - name: Build Linux packages
+        run: npx electron-builder --linux
+        working-directory: app
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: CadixMod-Linux
+          path: |
+            app/release/*.AppImage
+            app/release/*.deb
+          if-no-files-found: warn
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install root dependencies
+        run: npm install
+
+      - name: Install app dependencies
+        run: npm install
+        working-directory: app
+
+      - name: Build mod
+        run: npm run build
+
+      - name: Build desktop app
+        run: npm run build
+        working-directory: app
+
+      - name: Build macOS DMG
+        run: npx electron-builder --mac
+        working-directory: app
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: CadixMod-macOS
+          path: app/release/*.dmg
+          if-no-files-found: warn
+
+  release:
+    needs: [build-windows, build-linux, build-macos]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+          files: |
+            CadixMod-Windows/*
+            CadixMod-Linux/*
+            CadixMod-macOS/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

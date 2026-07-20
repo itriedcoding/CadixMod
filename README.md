@@ -4,6 +4,18 @@ A high-performance, cross-platform Discord client mod with a standalone desktop 
 
 ![CadixMod](https://img.shields.io/badge/version-1.0.0-blue) ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-green) ![License](https://img.shields.io/badge/license-MIT-yellow)
 
+## Downloads
+
+Grab the latest release from [**GitHub Releases**](https://github.com/itriedcoding/CadixMod/releases/latest)
+
+| Platform | File | Description |
+|----------|------|-------------|
+| Windows | `CadixMod-Setup-1.0.0.exe` | Installer with Start Menu shortcut |
+| Windows | `CadixMod-1.0.0.exe` | Portable (no install needed) |
+| Linux | `CadixMod-1.0.0.AppImage` | Portable, works on most distros |
+| Linux | `cadixmod_1.0.0_amd64.deb` | Debian/Ubuntu package |
+| macOS | `CadixMod-1.0.0.dmg` | macOS disk image |
+
 ## Features
 
 - **Desktop App** - Standalone GUI for managing Discord injection
@@ -21,51 +33,58 @@ A high-performance, cross-platform Discord client mod with a standalone desktop 
 
 ### Desktop App (Recommended)
 
-1. Download the latest release from [Releases](https://github.com/itriedcoding/CadixMod/releases)
-2. Run the installer for your platform:
-   - **Windows**: `CadixMod-Setup-1.0.0.exe`
-   - **macOS**: `CadixMod-1.0.0.dmg`
-   - **Linux**: `CadixMod-1.0.0.AppImage`
-3. Open CadixMod and click "Inject into Discord"
+1. Download the latest release for your platform from [Releases](https://github.com/itriedcoding/CadixMod/releases/latest)
+2. Run the installer or portable executable
+3. Open CadixMod and click **"Inject into Discord"**
 4. Launch Discord - CadixMod is now active!
 
 ### Build from Source
 
-```bash
-# Clone the repository
+#### Windows (PowerShell)
+```powershell
 git clone https://github.com/itriedcoding/CadixMod.git
 cd CadixMod
+.\setup.ps1
+```
 
-# Install dependencies
+#### Linux / macOS
+```bash
+git clone https://github.com/itriedcoding/CadixMod.git
+cd CadixMod
+chmod +x setup.sh
+./setup.sh
+```
+
+#### Run the Desktop App
+```powershell
+cd app
+npm run dev
+```
+
+### Build Installers
+
+#### Windows
+```powershell
+cd app
 npm install
-
-# Build everything (mod + desktop app)
-npm run build:all
-
-# Or build just the mod
-npm run build
-
-# Or build just the desktop app
-npm run build:desktop
+npm run dist:win
 ```
 
-### Run Desktop App in Development
-
+#### Linux
 ```bash
-npm run desktop
+cd app
+npm install
+npm run dist:linux
 ```
 
-## Building Installers
-
+#### macOS
 ```bash
-# Build for your current platform
-npm run desktop:build
-
-# Build for specific platforms
-npm run desktop:build:win     # Windows (.exe installer + portable)
-npm run desktop:build:linux   # Linux (.AppImage + .deb)
-npm run desktop:build:mac     # macOS (.dmg)
+cd app
+npm install
+npm run dist:mac
 ```
+
+Built installers will be in `app/release/`.
 
 ## Project Structure
 
@@ -91,13 +110,9 @@ CadixMod/
 │   ├── package.json       # Desktop app dependencies
 │   └── build.mjs          # Build script
 ├── scripts/               # Build and install scripts
-│   ├── build.mjs          # Mod build
-│   ├── build-mod.mjs      # Mod build for desktop app
-│   ├── inject.mjs         # CLI injection
-│   ├── uninject.mjs       # CLI removal
-│   ├── install.ps1        # Windows installer
-│   ├── install.sh         # Linux installer
-│   └── install_macos.sh   # macOS installer
+├── .github/workflows/     # GitHub Actions (auto-release)
+├── setup.ps1              # Windows setup script
+├── setup.sh               # Linux/macOS setup script
 ├── package.json
 ├── tsconfig.json
 └── README.md
@@ -172,15 +187,13 @@ discordAPI.sendMessage(channelId, "Hello!");
 Open CadixMod -> Discord -> Click "Remove" on each installation
 
 ### Via CLI
-```bash
+```powershell
 # Windows
-.\scripts\install.ps1 uninstall
-
-# Linux
-./scripts/install.sh uninstall
-
-# macOS
-./scripts/install_macos.sh uninstall
+node scripts/uninject.mjs
+```
+```bash
+# Linux / macOS
+node scripts/uninject.mjs
 ```
 
 ### Manual
