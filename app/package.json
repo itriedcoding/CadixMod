@@ -7,11 +7,11 @@
     "build": "node build.mjs",
     "dev": "electron .",
     "start": "electron .",
-    "dist": "node build.mjs; electron-builder --publish never",
-    "dist:win": "node build.mjs; electron-builder --win --publish never",
-    "dist:linux": "node build.mjs; electron-builder --linux --publish never",
-    "dist:mac": "node build.mjs; electron-builder --mac --publish never",
-    "dist:all": "node build.mjs; electron-builder -wml --publish never"
+    "dist": "node build.mjs && electron-builder --publish never",
+    "dist:win": "node build.mjs && electron-builder --win --publish never",
+    "dist:linux": "node build.mjs && electron-builder --linux --publish never",
+    "dist:mac": "node build.mjs && electron-builder --mac --publish never",
+    "dist:all": "node build.mjs && electron-builder -wml --publish never"
   },
   "author": {
     "name": "itriedcoding",
