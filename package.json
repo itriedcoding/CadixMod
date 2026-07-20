@@ -7,20 +7,21 @@
     "build": "node scripts/build.mjs",
     "build:watch": "node scripts/build.mjs --watch",
     "build:mod": "node scripts/build-mod.mjs",
-    "build:desktop": "cd app && npm install && npm run build",
-    "build:all": "npm run build && npm run build:desktop",
+    "build:desktop": "node -e \"const{execSync}=require('child_process');execSync('npm install',{cwd:'app',stdio:'inherit'});execSync('npm run build',{cwd:'app',stdio:'inherit'})\"",
+    "build:all": "node -e \"const{execSync}=require('child_process');execSync('npm run build',{stdio:'inherit'});execSync('npm run build:desktop',{stdio:'inherit'})\"",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
     "typecheck": "tsc --noEmit",
     "inject": "node scripts/inject.mjs",
     "uninject": "node scripts/uninject.mjs",
-    "desktop": "cd app && npm run dev",
-    "desktop:build": "cd app && npm run dist",
-    "desktop:build:win": "cd app && npm run dist:win",
-    "desktop:build:linux": "cd app && npm run dist:linux",
-    "desktop:build:mac": "cd app && npm run dist:mac",
-    "dist": "node scripts/build.mjs && node scripts/package.mjs",
-    "clean": "node -e \"const fs=require('fs');['dist','app/dist','app/release','build'].forEach(d=>{try{fs.rmSync(d,{recursive:true,force:true})}catch{}})\""
+    "desktop": "node -e \"const{execSync}=require('child_process');execSync('npm run dev',{cwd:'app',stdio:'inherit'})\"",
+    "desktop:build": "node -e \"const{execSync}=require('child_process');execSync('npm run dist',{cwd:'app',stdio:'inherit'})\"",
+    "desktop:build:win": "node -e \"const{execSync}=require('child_process');execSync('npm run dist:win',{cwd:'app',stdio:'inherit'})\"",
+    "desktop:build:linux": "node -e \"const{execSync}=require('child_process');execSync('npm run dist:linux',{cwd:'app',stdio:'inherit'})\"",
+    "desktop:build:mac": "node -e \"const{execSync}=require('child_process');execSync('npm run dist:mac',{cwd:'app',stdio:'inherit'})\"",
+    "dist": "node -e \"const{execSync}=require('child_process');execSync('npm run build',{stdio:'inherit'});execSync('node scripts/package.mjs',{stdio:'inherit'})\"",
+    "clean": "node -e \"const fs=require('fs');['dist','app/dist','app/release','build'].forEach(d=>{try{fs.rmSync(d,{recursive:true,force:true})}catch{}})\"",
+    "setup": "node -e \"const{execSync}=require('child_process');execSync('npm install',{stdio:'inherit'});execSync('npm install',{cwd:'app',stdio:'inherit'});console.log('Setup complete!')\""
   },
   "repository": {
     "type": "git",
@@ -35,7 +36,5 @@
     "eslint": "^8.56.0",
     "typescript": "^5.3.0"
   },
-  "dependencies": {
-    "@electron/get": "^2.1.0"
-  }
+  "dependencies": {}
 }
