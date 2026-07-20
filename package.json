@@ -1,0 +1,41 @@
+{
+  "name": "cadixmod",
+  "version": "1.0.0",
+  "description": "A high-performance, cross-platform Discord client mod",
+  "main": "dist/main/index.js",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "build:watch": "node scripts/build.mjs --watch",
+    "build:mod": "node scripts/build-mod.mjs",
+    "build:desktop": "cd app && npm install && npm run build",
+    "build:all": "npm run build && npm run build:desktop",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "typecheck": "tsc --noEmit",
+    "inject": "node scripts/inject.mjs",
+    "uninject": "node scripts/uninject.mjs",
+    "desktop": "cd app && npm run dev",
+    "desktop:build": "cd app && npm run dist",
+    "desktop:build:win": "cd app && npm run dist:win",
+    "desktop:build:linux": "cd app && npm run dist:linux",
+    "desktop:build:mac": "cd app && npm run dist:mac",
+    "dist": "node scripts/build.mjs && node scripts/package.mjs",
+    "clean": "node -e \"const fs=require('fs');['dist','app/dist','app/release','build'].forEach(d=>{try{fs.rmSync(d,{recursive:true,force:true})}catch{}})\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/itriedcoding/CadixMod.git"
+  },
+  "author": "itriedcoding",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/react": "^18.2.0",
+    "esbuild": "^0.20.0",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.0"
+  },
+  "dependencies": {
+    "@electron/get": "^2.1.0"
+  }
+}
