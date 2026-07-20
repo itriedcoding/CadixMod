@@ -5,7 +5,7 @@
 set -e
 
 CADIXMOD_NAME="CadixMod"
-CADIXMOD_VERSION="1.0.0"
+CADIXMOD_VERSION="1.1.0"
 
 DISCORD_PATHS=(
     "$HOME/.config/discord"

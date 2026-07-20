@@ -7,7 +7,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
 
 const sharedDefines = {
-  CADIXMOD_VERSION: JSON.stringify("1.0.0"),
+  CADIXMOD_VERSION: JSON.stringify("1.1.0"),
   CADIXMOD_BUILDTIME: JSON.stringify(Date.now()),
 };
 

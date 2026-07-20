@@ -472,7 +472,7 @@ function setupIPC(): void {
 app.whenReady().then(async () => {
   settings = loadSettings();
   ensureDirs();
-  logger.info("CadixMod Desktop v1.0.0 starting...");
+  logger.info("CadixMod Desktop v1.1.0 starting...");
 
   createWindow();
   createTray();

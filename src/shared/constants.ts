@@ -1,6 +1,6 @@
 import { CadixSettings, LogLevel } from "./types";
 
-export const CADIXMOD_VERSION = "1.0.0";
+export const CADIXMOD_VERSION = "1.1.0";
 
 export const CADIXMOD_NAME = "CadixMod";
 
