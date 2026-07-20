@@ -1,7 +1,7 @@
 import { build } from "esbuild";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
-import { existsSync, mkdirSync, readdirSync, statSync, cpSync } from "fs";
+import { existsSync, mkdirSync, readdirSync, cpSync } from "fs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
@@ -19,11 +19,8 @@ const commonOptions = {
   define: sharedDefines,
   target: "node18",
   platform: "node",
-  format: "cjs",
-  conditions: ["import", "module"],
   logLevel: "info",
   treeShaking: true,
-  drop: ["debugger"],
 };
 
 function copyDirSync(src, dest) {
@@ -47,8 +44,7 @@ async function main() {
     entryPoints: [join(ROOT, "src", "main", "index.ts")],
     outfile: join(ROOT, "dist", "main", "index.js"),
     format: "cjs",
-    platform: "node",
-    target: "node18",
+    external: ["electron"],
   };
 
   const preloadConfig = {
@@ -56,8 +52,7 @@ async function main() {
     entryPoints: [join(ROOT, "src", "preload", "index.ts")],
     outfile: join(ROOT, "dist", "preload", "index.js"),
     format: "cjs",
-    platform: "node",
-    target: "node18",
+    external: ["electron"],
   };
 
   const rendererConfig = {
@@ -67,10 +62,6 @@ async function main() {
     format: "iife",
     platform: "browser",
     target: "chrome120",
-    globals: {
-      react: "Vencord.Common.React",
-    },
-    drop: ["debugger", "console"],
   };
 
   await Promise.all([

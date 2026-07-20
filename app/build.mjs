@@ -21,12 +21,14 @@ async function main() {
     ...sharedOptions,
     entryPoints: [join(__dirname, "src", "main.ts")],
     outfile: join(__dirname, "dist", "main.js"),
+    external: ["electron"],
   });
 
   await build({
     ...sharedOptions,
     entryPoints: [join(__dirname, "src", "preload.ts")],
     outfile: join(__dirname, "dist", "preload.js"),
+    external: ["electron"],
   });
 
   await build({

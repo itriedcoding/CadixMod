@@ -20,41 +20,15 @@ const commonOptions = {
   define: sharedDefines,
   target: "node18",
   platform: "node",
-  format: "esm",
-  conditions: ["import", "module"],
   logLevel: "info",
 };
-
-function getPluginFiles() {
-  const pluginsDir = join(ROOT, "src", "plugins");
-  const files = [];
-
-  function walk(dir) {
-    for (const entry of readdirSync(dir)) {
-      const full = join(dir, entry);
-      const stat = statSync(full);
-      if (stat.isDirectory()) {
-        walk(full);
-      } else if (entry.endsWith(".ts") && !entry.endsWith(".d.ts")) {
-        files.push(full);
-      }
-    }
-  }
-
-  walk(pluginsDir);
-  return files;
-}
 
 const mainConfig = {
   ...commonOptions,
   entryPoints: [join(ROOT, "src", "main", "index.ts")],
   outfile: join(ROOT, "dist", "main", "index.js"),
   format: "cjs",
-  platform: "node",
-  target: "node18",
-  banner: {
-    js: `/* CadixMod v1.0.0 - Discord Client Mod */`,
-  },
+  external: ["electron"],
 };
 
 const preloadConfig = {
@@ -62,8 +36,7 @@ const preloadConfig = {
   entryPoints: [join(ROOT, "src", "preload", "index.ts")],
   outfile: join(ROOT, "dist", "preload", "index.js"),
   format: "cjs",
-  platform: "node",
-  target: "node18",
+  external: ["electron"],
 };
 
 const rendererConfig = {
@@ -73,12 +46,7 @@ const rendererConfig = {
   format: "iife",
   platform: "browser",
   target: "chrome120",
-  globals: {
-    react: "Vencord.Common.React",
-  },
 };
-
-const pluginEntry = join(ROOT, "src", "plugins", "_index.ts");
 
 async function main() {
   console.log("\x1b[36m[CadixMod]\x1b[0m Building...");
