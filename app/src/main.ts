@@ -166,7 +166,7 @@ function createTray(): void {
     if (existsSync(iconPath)) {
       trayIcon = nativeImage.createFromPath(iconPath).resize({ width: 16, height: 16 });
     } else {
-      trayIcon = nativeImage.createEmpty();
+      trayIcon = nativeImage.createColoredImage("#5865F2").resize({ width: 16, height: 16 });
     }
     tray = new Tray(trayIcon);
   } catch {
@@ -204,7 +204,8 @@ function createTray(): void {
 }
 
 function createWindow(): void {
-  mainWindow = new BrowserWindow({
+  const iconPath = join(getAppPath(), "assets", "icon.png");
+  const windowOptions: Electron.BrowserWindowConstructorOptions = {
     width: 900,
     height: 600,
     minWidth: 700,
@@ -212,7 +213,6 @@ function createWindow(): void {
     frame: false,
     titleBarStyle: "hidden",
     backgroundColor: "#0a0a0a",
-    icon: join(getAppPath(), "assets", "icon.png"),
     webPreferences: {
       preload: join(__dirname, "preload.js"),
       contextIsolation: true,
@@ -220,9 +220,38 @@ function createWindow(): void {
       sandbox: false,
     },
     show: false,
+  };
+
+  if (existsSync(iconPath)) {
+    windowOptions.icon = nativeImage.createFromPath(iconPath);
+  }
+
+  mainWindow = new BrowserWindow(windowOptions);
+
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    return { action: "deny" };
+  });
+
+  mainWindow.on("aura:ready", () => {
+    const win = mainWindow;
+    if (win) {
+      win.show();
+    }
   });
 
   mainWindow.loadFile(join(__dirname, "index.html"));
+
+  mainWindow.webContents.on("did-fail-to-load", (event, errorCode, errorName, errorDesc) => {
+    logger.error(`Failed to load index.html: ${errorDesc} (${errorName}: ${errorCode})`);
+  });
+
+  mainWindow.webContents.on("crashed", (event, killed) => {
+    logger.error(`Renderer crashed. Killed: ${killed}`);
+  });
+
+  if (process.env.NODE_ENV === "development") {
+    mainWindow.webContents.openDevTools();
+  }
 
   mainWindow.once("ready-to-show", () => {
     mainWindow?.show();
